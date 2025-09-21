@@ -41,7 +41,7 @@ export async function POST(
     const existingRun = await prisma.campaignRun.findFirst({
       where: {
         campaignId: campaign.id,
-        status: { in: ['RUNNING', 'PAUSED'] },
+        status: { in: ['RUNNING', 'PAUSED'] as const },
       },
     })
 
@@ -56,7 +56,7 @@ export async function POST(
     const campaignRun = await prisma.campaignRun.create({
       data: {
         campaignId: campaign.id,
-        status: 'RUNNING',
+        status: 'RUNNING' as const,
       },
     })
 
@@ -119,7 +119,7 @@ export async function POST(
     const campaignRunLeads = leads.map((lead) => ({
       campaignRunId: campaignRun.id,
       leadId: lead.id,
-      status: 'PENDING',
+      status: 'PENDING' as const,
     }))
 
     await prisma.campaignRunLead.createMany({

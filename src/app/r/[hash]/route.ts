@@ -41,7 +41,7 @@ export async function GET(
         leadId,
         campaignId,
         stepId,
-        type: 'CLICK',
+        type: 'CLICK' as const,
         metadata: {
           url: originalUrl,
           ip,

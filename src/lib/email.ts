@@ -132,7 +132,7 @@ export async function sendEmail(options: EmailOptions) {
         leadId,
         campaignId,
         stepId,
-        type: 'SENT',
+        type: 'SENT' as const,
         metadata: {
           messageId: response.data.id,
           to,
@@ -221,7 +221,7 @@ export async function checkBounces(emailAccountId: string) {
             data: {
               leadId: lead.id,
               campaignId: '', // Empty for bounce detection
-              type: 'BOUNCE',
+              type: 'BOUNCE' as const,
               metadata: {
                 bounceMessage: subject,
                 timestamp: new Date(),

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { redis } from '@/lib/redis'
 import { verifyTrackingSignature } from '@/lib/utils'
 
 export async function GET(request: NextRequest) {
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
         leadId,
         campaignId,
         stepId,
-        type: 'OPEN',
+        type: 'OPEN' as const,
         metadata: {
           ip,
           userAgent,

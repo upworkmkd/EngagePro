@@ -34,10 +34,10 @@ export async function POST(
     await prisma.campaignRun.updateMany({
       where: {
         campaignId: campaign.id,
-        status: { in: ['RUNNING', 'PAUSED'] },
+        status: { in: ['RUNNING', 'PAUSED'] as const },
       },
       data: {
-        status: 'STOPPED',
+        status: 'STOPPED' as const,
         finishedAt: new Date(),
       },
     })

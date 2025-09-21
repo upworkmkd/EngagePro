@@ -67,7 +67,7 @@ const emailWorker = new Worker('email-sending', async (job) => {
         campaignRunId: job.data.campaignRunId,
       },
       data: {
-        status: 'SENT',
+        status: 'SENT' as const,
         sentAt: new Date(),
       },
     })
