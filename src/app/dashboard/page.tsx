@@ -1,15 +1,16 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/DashboardLayout'
 import StatsCard from '@/components/StatsCard'
 import RecentCampaigns from '@/components/RecentCampaigns'
 import RecentLeads from '@/components/RecentLeads'
+import GoogleAccountConnection from '@/components/GoogleAccountConnection'
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
   const [stats, setStats] = useState({
     totalLeads: 0,
@@ -19,16 +20,32 @@ export default function DashboardPage() {
   })
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin')
+    checkAuth()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const checkAuth = async () => {
+    try {
+      const response = await fetch('/api/auth/me')
+      if (response.ok) {
+        const data = await response.json()
+        setUser(data.user)
+        fetchStats()
+      } else {
+        router.push('/login')
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error)
+      router.push('/login')
+    } finally {
+      setLoading(false)
     }
-  }, [status, router])
+  }
 
   useEffect(() => {
-    if (session) {
+    if (user) {
       fetchStats()
     }
-  }, [session])
+  }, [user])
 
   const fetchStats = async () => {
     try {
@@ -51,15 +68,15 @@ export default function DashboardPage() {
     }
   }
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
       </div>
     )
   }
 
-  if (!session) {
+  if (!user) {
     return null
   }
 
@@ -68,7 +85,7 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {session.user?.name}!
+            Welcome back, {user.name}!
           </h1>
           <p className="text-gray-600 mt-2">
             Here's what's happening with your campaigns today.
@@ -109,6 +126,10 @@ export default function DashboardPage() {
         <div className="grid lg:grid-cols-2 gap-6">
           <RecentCampaigns />
           <RecentLeads />
+        </div>
+
+        <div className="mt-8">
+          <GoogleAccountConnection />
         </div>
       </div>
     </DashboardLayout>

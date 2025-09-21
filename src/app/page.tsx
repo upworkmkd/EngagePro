@@ -1,24 +1,37 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
 import Link from 'next/link'
 
 export default function HomePage() {
-  const { data: session, status } = useSession()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      router.push('/dashboard')
-    }
-  }, [status, router])
+    checkAuth()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (status === 'loading') {
+  const checkAuth = async () => {
+    try {
+      const response = await fetch('/api/auth/me')
+      if (response.ok) {
+        const data = await response.json()
+        setUser(data.user)
+        router.push('/dashboard')
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
       </div>
     )
   }
@@ -37,13 +50,13 @@ export default function HomePage() {
           
           <div className="space-x-4">
             <Link
-              href="/auth/signin"
+              href="/register"
               className="btn btn-primary text-lg px-8 py-3"
             >
               Get Started
             </Link>
             <Link
-              href="/auth/signin"
+              href="/login"
               className="btn btn-secondary text-lg px-8 py-3"
             >
               Sign In

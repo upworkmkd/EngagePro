@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { LeadFilters } from '@/types'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getCurrentUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -27,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     // Build where clause
     const where: any = {
-      userId: session.user.id,
+      userId: user.id,
     }
 
     if (search) {
@@ -106,8 +105,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getCurrentUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -116,7 +115,7 @@ export async function POST(request: NextRequest) {
     const lead = await prisma.lead.create({
       data: {
         ...body,
-        userId: session.user.id,
+        userId: user.id,
       },
     })
 

@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth-utils'
+
 import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getCurrentUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const emailAccounts = await prisma.emailAccount.findMany({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       select: {
         id: true,
         provider: true,
@@ -34,8 +34,8 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getCurrentUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -52,7 +52,7 @@ export async function DELETE(request: NextRequest) {
     await prisma.emailAccount.update({
       where: {
         id: accountId,
-        userId: session.user.id,
+        userId: user.id,
       },
       data: {
         isActive: false,

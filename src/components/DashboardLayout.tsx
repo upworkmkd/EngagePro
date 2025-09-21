@@ -1,18 +1,43 @@
 'use client'
 
-import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { data: session } = useSession()
+  const [user, setUser] = useState<any>(null)
   const pathname = usePathname()
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    fetchUser()
+  }, [])
+
+  const fetchUser = async () => {
+    try {
+      const response = await fetch('/api/auth/me')
+      if (response.ok) {
+        const data = await response.json()
+        setUser(data.user)
+      }
+    } catch (error) {
+      console.error('Failed to fetch user:', error)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      router.push('/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: '📊' },
@@ -26,7 +51,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const isActive = (href: string) => pathname === href
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-40 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
         <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
@@ -43,7 +68,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </svg>
             </button>
           </div>
-          <SidebarContent navigation={navigation} isActive={isActive} session={session} />
+          <SidebarContent navigation={navigation} isActive={isActive} user={user} />
         </div>
       </div>
 
@@ -51,13 +76,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="hidden lg:flex lg:flex-shrink-0">
         <div className="flex flex-col w-64">
           <div className="flex flex-col h-0 flex-1 bg-white border-r border-gray-200">
-            <SidebarContent navigation={navigation} isActive={isActive} session={session} />
+            <SidebarContent navigation={navigation} isActive={isActive} user={user} />
           </div>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64 flex flex-col flex-1">
+      <div className="flex flex-col flex-1 lg:ml-0">
         {/* Top navigation */}
         <div className="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200 lg:border-none">
           <button
@@ -90,9 +115,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="ml-4 flex items-center md:ml-6">
               <div className="ml-3 relative">
                 <div className="flex items-center space-x-3">
-                  <span className="text-sm text-gray-700">{session?.user?.name}</span>
+                  <span className="text-sm text-gray-700">{user?.name}</span>
                   <button
-                    onClick={() => signOut()}
+                    onClick={handleLogout}
                     className="btn btn-secondary text-sm"
                   >
                     Sign Out
@@ -114,7 +139,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   )
 }
 
-function SidebarContent({ navigation, isActive, session }: { navigation: any[], isActive: (href: string) => boolean, session: any }) {
+function SidebarContent({ navigation, isActive, user }: { navigation: any[], isActive: (href: string) => boolean, user: any }) {
   return (
     <>
       <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
@@ -143,16 +168,16 @@ function SidebarContent({ navigation, isActive, session }: { navigation: any[], 
           <div className="flex-shrink-0">
             <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center">
               <span className="text-sm font-medium text-white">
-                {session?.user?.name?.charAt(0) || 'U'}
+                {user?.name?.charAt(0) || 'U'}
               </span>
             </div>
           </div>
           <div className="ml-3">
             <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-              {session?.user?.name || 'User'}
+              {user?.name || 'User'}
             </p>
             <p className="text-xs font-medium text-gray-500 group-hover:text-gray-700">
-              {session?.user?.email}
+              {user?.email}
             </p>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth-utils'
+
 import { google } from 'googleapis'
 import { prisma } from '@/lib/prisma'
 
@@ -12,8 +12,8 @@ const oauth2Client = new google.auth.OAuth2(
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getCurrentUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     const emailAccount = await prisma.emailAccount.upsert({
       where: {
         userId_email: {
-          userId: session.user.id,
+          userId: user.id,
           email: data.email,
         },
       },
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
         isActive: true,
       },
       create: {
-        userId: session.user.id,
+        userId: user.id,
         provider: 'gmail',
         email: data.email,
         refreshToken: tokens.refresh_token,
