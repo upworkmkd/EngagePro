@@ -1,0 +1,310 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  leads    Lead[]
+  campaigns Campaign[]
+  emailAccounts EmailAccount[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Lead {
+  id                  String   @id @default(cuid())
+  userId              String
+  name                String
+  category            String?
+  address             String?
+  city                String?
+  region              String?
+  country             String
+  phone               String?
+  website             String?
+  email               String?
+  rating              Float?
+  reviewsCount        Int?
+  rawJson             Json?
+  source              String   @default("manual")
+  enriched            Boolean  @default(false)
+  enrichmentAttempts  Int      @default(0)
+  bounced             Boolean  @default(false)
+  lastContacted       DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaignRuns        CampaignRunLead[]
+  activities          Activity[]
+  trackingClicks      TrackingClick[]
+  trackingOpens       TrackingOpen[]
+  enrichmentAttemptsList EnrichmentAttempt[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([country])
+  @@index([email])
+  @@index([bounced])
+}
+
+model Campaign {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  filtersJson Json?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  steps          CampaignStep[]
+  runs           CampaignRun[]
+  activities     Activity[]
+  trackingClicks TrackingClick[]
+  trackingOpens  TrackingOpen[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model CampaignStep {
+  id              String   @id @default(cuid())
+  campaignId      String
+  stepOrder       Int
+  subjectTemplate String
+  bodyTemplate    String   @db.Text
+  minDelayMinutes Int      @default(60)
+  maxDelayMinutes Int      @default(120)
+  condition       String?  // e.g., "no_open", "always"
+  conditionValue  Int?     // e.g., days to wait
+  createdAt       DateTime @default(now())
+
+  campaign  Campaign         @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  activities Activity[]
+  trackingClicks TrackingClick[]
+  trackingOpens TrackingOpen[]
+
+  @@unique([campaignId, stepOrder])
+  @@index([campaignId])
+}
+
+model CampaignRun {
+  id         String           @id @default(cuid())
+  campaignId String
+  status     CampaignStatus   @default(RUNNING)
+  startedAt  DateTime         @default(now())
+  finishedAt DateTime?
+  statsJson  Json?
+
+  campaign Campaign            @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  leads    CampaignRunLead[]
+
+  @@index([campaignId])
+}
+
+model CampaignRunLead {
+  id           String      @id @default(cuid())
+  campaignRunId String
+  leadId       String
+  status       LeadStatus  @default(PENDING)
+  scheduledFor DateTime?
+  sentAt       DateTime?
+  completedAt  DateTime?
+
+  campaignRun CampaignRun @relation(fields: [campaignRunId], references: [id], onDelete: Cascade)
+  lead        Lead        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignRunId, leadId])
+  @@index([leadId])
+}
+
+enum CampaignStatus {
+  RUNNING
+  COMPLETED
+  PAUSED
+  STOPPED
+}
+
+enum LeadStatus {
+  PENDING
+  SENT
+  DELIVERED
+  BOUNCED
+  COMPLETED
+}
+
+model Activity {
+  id         String     @id @default(cuid())
+  leadId     String
+  campaignId String
+  stepId     String?
+  type       ActivityType
+  metadata   Json?
+  createdAt  DateTime   @default(now())
+
+  lead     Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  campaign Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  step     CampaignStep? @relation(fields: [stepId], references: [id], onDelete: SetNull)
+
+  @@index([leadId])
+  @@index([campaignId])
+  @@index([type])
+}
+
+enum ActivityType {
+  SENT
+  DELIVERED
+  OPEN
+  CLICK
+  BOUNCE
+  REPLY
+  UNSUBSCRIBE
+}
+
+model EmailSendQueue {
+  id          String        @id @default(cuid())
+  jobId       String?       @unique
+  payload     Json
+  status      QueueStatus   @default(PENDING)
+  attempts    Int           @default(0)
+  maxAttempts Int           @default(3)
+  scheduledAt DateTime      @default(now())
+  processedAt DateTime?
+  failedAt    DateTime?
+  error       String?
+
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+enum QueueStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  RETRY
+}
+
+model EmailAccount {
+  id           String   @id @default(cuid())
+  userId       String
+  provider     String   @default("gmail")
+  email        String
+  refreshToken String?  @db.Text
+  accessToken  String?  @db.Text
+  expiresAt    DateTime?
+  connectedAt  DateTime @default(now())
+  isActive     Boolean  @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, email])
+  @@index([userId])
+}
+
+model TrackingClick {
+  id         String   @id @default(cuid())
+  leadId     String
+  campaignId String
+  stepId     String?
+  url        String
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  lead     Lead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  campaign Campaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  step     CampaignStep? @relation(fields: [stepId], references: [id], onDelete: SetNull)
+
+  @@index([leadId])
+  @@index([campaignId])
+}
+
+model TrackingOpen {
+  id         String   @id @default(cuid())
+  leadId     String
+  campaignId String
+  stepId     String?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  lead     Lead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  campaign Campaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  step     CampaignStep? @relation(fields: [stepId], references: [id], onDelete: SetNull)
+
+  @@index([leadId])
+  @@index([campaignId])
+}
+
+model EnrichmentAttempt {
+  id        String   @id @default(cuid())
+  leadId    String
+  method    String   // "web_scraping", "email_guess", "api"
+  success   Boolean  @default(false)
+  email     String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([method])
+}
