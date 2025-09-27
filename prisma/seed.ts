@@ -174,8 +174,8 @@ async function main() {
             </body>
           </html>
         `,
-        minDelayMinutes: 60,
-        maxDelayMinutes: 120,
+        waitType: 'minutes',
+        waitValue: 60,
         condition: 'always',
       },
     })
@@ -204,8 +204,8 @@ async function main() {
             </body>
           </html>
         `,
-        minDelayMinutes: 1440, // 24 hours
-        maxDelayMinutes: 2880, // 48 hours
+        waitType: 'hours',
+        waitValue: 24,
         condition: 'no_open',
         conditionValue: 1, // 1 day
       },

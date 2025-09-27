@@ -4,10 +4,23 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/DashboardLayout'
 import GoogleAccountConnection from '@/components/GoogleAccountConnection'
+import EmailAccountSettingsModal from '@/components/EmailAccountSettingsModal'
+
+interface EmailAccount {
+  id: string
+  email: string
+  name: string | null
+  dailyLimit: number
+  isActive: boolean
+  connectedAt: string
+}
 
 export default function EmailAccountsPage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [emailAccounts, setEmailAccounts] = useState<EmailAccount[]>([])
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
+  const [selectedAccount, setSelectedAccount] = useState<EmailAccount | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -20,6 +33,7 @@ export default function EmailAccountsPage() {
       if (response.ok) {
         const data = await response.json()
         setUser(data.user)
+        fetchEmailAccounts()
       } else {
         router.push('/login')
       }
@@ -29,6 +43,27 @@ export default function EmailAccountsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchEmailAccounts = async () => {
+    try {
+      const response = await fetch('/api/email-accounts')
+      if (response.ok) {
+        const data = await response.json()
+        setEmailAccounts(data.emailAccounts || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch email accounts:', error)
+    }
+  }
+
+  const handleEditSettings = (account: EmailAccount) => {
+    setSelectedAccount(account)
+    setShowSettingsModal(true)
+  }
+
+  const handleSettingsSuccess = () => {
+    fetchEmailAccounts()
   }
 
   if (loading) {
@@ -55,8 +90,16 @@ export default function EmailAccountsPage() {
           </p>
         </div>
 
-        <GoogleAccountConnection />
+        <GoogleAccountConnection onEditSettings={handleEditSettings} />
       </div>
+
+      {/* Email Account Settings Modal */}
+      <EmailAccountSettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        onSuccess={handleSettingsSuccess}
+        account={selectedAccount}
+      />
     </DashboardLayout>
   )
 }

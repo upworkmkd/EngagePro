@@ -3,16 +3,28 @@ import { getCurrentUser } from '@/lib/auth-utils'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
+const campaignStepSchema = z.object({
+  stepOrder: z.number().min(1),
+  subjectTemplate: z.string().min(1),
+  bodyTemplate: z.string().min(1),
+  waitType: z.enum(['minutes', 'hours', 'days']),
+  waitValue: z.number().min(1),
+  condition: z.string().optional(),
+})
+
 const campaignSchema = z.object({
   name: z.string().min(1),
+  leadSelectionType: z.enum(['leadpack', 'filters']).default('filters'),
+  selectedLeadPack: z.string().optional(),
+  senderEmails: z.array(z.string()).min(1),
   filtersJson: z.object({
-    countries: z.array(z.string()).optional(),
-    categories: z.array(z.string()).optional(),
-    hasWebsite: z.boolean().optional(),
-    hasEmail: z.boolean().optional(),
+    industry: z.string().optional(),
+    location: z.string().optional(),
+    companySize: z.string().optional(),
     ratingMin: z.number().optional(),
     lastContactedDays: z.number().optional(),
   }).optional(),
+  steps: z.array(campaignStepSchema).min(1),
 })
 
 export async function GET(request: NextRequest) {
@@ -33,7 +45,16 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: {
+        select: {
+          id: true,
+          name: true,
+          leadSelectionType: true,
+          selectedLeadPack: true,
+          senderEmails: true,
+          filtersJson: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
           steps: {
             orderBy: { stepOrder: 'asc' },
           },
@@ -75,15 +96,33 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = campaignSchema.parse(body)
 
-    const campaign = await prisma.campaign.create({
-      data: {
-        ...validatedData,
-        userId: user.id,
-      },
-      include: {
-        steps: true,
-      },
-    })
+        const { steps, senderEmails, leadSelectionType, selectedLeadPack, filtersJson, ...campaignData } = validatedData
+
+        const campaign = await prisma.campaign.create({
+          data: {
+            name: campaignData.name,
+            leadSelectionType: leadSelectionType,
+            selectedLeadPack: selectedLeadPack,
+            senderEmails: senderEmails,
+            filtersJson: filtersJson,
+            userId: user.id,
+            steps: {
+              create: steps.map(step => ({
+                stepOrder: step.stepOrder,
+                subjectTemplate: step.subjectTemplate,
+                bodyTemplate: step.bodyTemplate,
+                waitType: step.waitType,
+                waitValue: step.waitValue,
+                condition: step.condition,
+              }))
+            }
+          },
+          include: {
+            steps: {
+              orderBy: { stepOrder: 'asc' }
+            },
+          },
+        })
 
     return NextResponse.json({ campaign }, { status: 201 })
   } catch (error) {
@@ -92,6 +131,17 @@ export async function POST(request: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input data', details: error.errors },
+        { status: 400 }
+      )
+    }
+
+    // Handle specific database errors
+    if (error instanceof Error && error.message.includes('Unique constraint failed')) {
+      return NextResponse.json(
+        {
+          error: 'A campaign with this name already exists',
+          details: [{ path: ['name'], message: 'Campaign name must be unique' }]
+        },
         { status: 400 }
       )
     }

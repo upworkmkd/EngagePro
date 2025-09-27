@@ -5,7 +5,7 @@ import { sendEmail, checkBounces } from '../lib/email'
 import { enrichLead } from '../lib/enrichment'
 import { importGooglePlaces } from '../lib/google-places'
 import { compileTemplate } from '../lib/templates'
-import { randomDelay } from '../lib/utils'
+import { randomDelay, calculateWaitTime } from '../lib/utils'
 import { followUpQueue } from '../lib/queue'
 
 // Email sending worker
@@ -290,7 +290,7 @@ async function scheduleFollowUp(leadId: string, campaignId: string, currentStepI
     delay = step.conditionValue * 24 * 60 * 60 * 1000 // Convert days to milliseconds
   } else if (step.condition === 'always') {
     // Schedule immediately with random delay
-    delay = randomDelay(nextStep.minDelayMinutes, nextStep.maxDelayMinutes)
+    delay = calculateWaitTime(nextStep.waitType, nextStep.waitValue)
   }
 
   if (delay > 0) {

@@ -53,6 +53,7 @@ model User {
   leads    Lead[]
   campaigns Campaign[]
   emailAccounts EmailAccount[]
+  leadPacks LeadPack[]
 }
 
 model VerificationToken {
@@ -97,6 +98,7 @@ model Lead {
   trackingClicks      TrackingClick[]
   trackingOpens       TrackingOpen[]
   enrichmentAttemptsList EnrichmentAttempt[]
+  leadPacks           LeadPack[]
 
   @@unique([userId, name])
   @@index([userId])
@@ -106,13 +108,16 @@ model Lead {
 }
 
 model Campaign {
-  id          String   @id @default(cuid())
-  userId      String
-  name        String
-  filtersJson Json?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(cuid())
+  userId            String
+  name              String
+  leadSelectionType String   @default("filters") // "filters" or "leadpack"
+  selectedLeadPack  String?  // ID of selected lead pack
+  senderEmails      String[] @default([]) // Array of sender email addresses
+  filtersJson       Json?
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   steps          CampaignStep[]
@@ -131,8 +136,8 @@ model CampaignStep {
   stepOrder       Int
   subjectTemplate String
   bodyTemplate    String   @db.Text
-  minDelayMinutes Int      @default(60)
-  maxDelayMinutes Int      @default(120)
+  waitType        String   @default("minutes") // minutes, hours, days
+  waitValue       Int      @default(60)
   condition       String?  // e.g., "no_open", "always"
   conditionValue  Int?     // e.g., days to wait
   createdAt       DateTime @default(now())
@@ -248,11 +253,13 @@ model EmailAccount {
   userId       String
   provider     String   @default("gmail")
   email        String
+  name         String?  // Display name for the account
   refreshToken String?  @db.Text
   accessToken  String?  @db.Text
   expiresAt    DateTime?
   connectedAt  DateTime @default(now())
   isActive     Boolean  @default(true)
+  dailyLimit   Int      @default(100) // Daily sending limit
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -308,4 +315,16 @@ model EnrichmentAttempt {
 
   @@index([leadId])
   @@index([method])
+}
+
+model LeadPack {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leads Lead[]
 }

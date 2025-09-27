@@ -63,6 +63,19 @@ export function randomDelay(minMinutes: number, maxMinutes: number): number {
   return Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs
 }
 
+export function calculateWaitTime(waitType: string, waitValue: number): number {
+  switch (waitType) {
+    case 'minutes':
+      return waitValue * 60 * 1000 // Convert minutes to milliseconds
+    case 'hours':
+      return waitValue * 60 * 60 * 1000 // Convert hours to milliseconds
+    case 'days':
+      return waitValue * 24 * 60 * 60 * 1000 // Convert days to milliseconds
+    default:
+      return waitValue * 60 * 1000 // Default to minutes
+  }
+}
+
 export function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email)

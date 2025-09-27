@@ -17,7 +17,16 @@ export async function GET(
         id: params.id,
         userId: user.id,
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        leadSelectionType: true,
+        selectedLeadPack: true,
+        senderEmails: true,
+        filtersJson: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
         steps: {
           orderBy: { stepOrder: 'asc' },
         },

@@ -40,19 +40,19 @@ export async function GET(
     })
 
     // Calculate metrics
-    const totalSent = activities.filter(a => a.type === 'SENT').length
-    const totalDelivered = activities.filter(a => a.type === 'DELIVERED').length
-    const totalBounced = activities.filter(a => a.type === 'BOUNCE').length
-    const totalOpens = activities.filter(a => a.type === 'OPEN').length
-    const totalClicks = activities.filter(a => a.type === 'CLICK').length
+    const totalSent = activities.filter((a: any) => a.type === 'SENT').length
+    const totalDelivered = activities.filter((a: any) => a.type === 'DELIVERED').length
+    const totalBounced = activities.filter((a: any) => a.type === 'BOUNCE').length
+    const totalOpens = activities.filter((a: any) => a.type === 'OPEN').length
+    const totalClicks = activities.filter((a: any) => a.type === 'CLICK').length
 
     // Get unique opens and clicks
     const uniqueOpens = new Set(
-      activities.filter(a => a.type === 'OPEN').map(a => a.leadId)
+      activities.filter((a: any) => a.type === 'OPEN').map((a: any) => a.leadId)
     ).size
 
     const uniqueClicks = new Set(
-      activities.filter(a => a.type === 'CLICK').map(a => a.leadId)
+      activities.filter((a: any) => a.type === 'CLICK').map((a: any) => a.leadId)
     ).size
 
     // Calculate rates
@@ -61,7 +61,7 @@ export async function GET(
     const bounceRate = totalSent > 0 ? (totalBounced / totalSent) * 100 : 0
 
     // Get daily activity breakdown
-    const dailyActivity = activities.reduce((acc, activity) => {
+    const dailyActivity = activities.reduce((acc: any, activity: any) => {
       const date = activity.createdAt.toISOString().split('T')[0]
       if (!acc[date]) {
         acc[date] = { sent: 0, opened: 0, clicked: 0, bounced: 0 }
@@ -103,27 +103,30 @@ export async function GET(
       },
     })
 
-    return NextResponse.json({
-      campaign: {
-        id: campaign.id,
-        name: campaign.name,
-        isActive: campaign.isActive,
+    // Get total leads for this campaign
+    const totalLeads = await prisma.campaignRunLead.count({
+      where: {
+        campaignRun: {
+          campaignId: campaign.id,
+        },
       },
-      runs,
-      metrics: {
-        totalSent,
-        totalDelivered,
-        totalBounced,
-        totalOpens,
-        uniqueOpens,
-        totalClicks,
-        uniqueClicks,
+    })
+
+    return NextResponse.json({
+      analytics: {
+        totalLeads,
+        emailsSent: totalSent,
+        emailsDelivered: totalDelivered,
+        emailsOpened: uniqueOpens,
+        emailsClicked: uniqueClicks,
+        emailsBounced: totalBounced,
         openRate: Number(openRate.toFixed(2)),
         clickRate: Number(clickRate.toFixed(2)),
         bounceRate: Number(bounceRate.toFixed(2)),
       },
+      runs,
       dailyActivity,
-      topLeads: leadStats.map(lead => ({
+      topLeads: leadStats.map((lead: any) => ({
         id: lead.id,
         name: lead.name,
         email: lead.email,

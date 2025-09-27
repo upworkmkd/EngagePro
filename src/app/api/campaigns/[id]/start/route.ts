@@ -116,7 +116,7 @@ export async function POST(
     }
 
     // Create campaign run leads
-    const campaignRunLeads = leads.map((lead) => ({
+    const campaignRunLeads = leads.map((lead: any) => ({
       campaignRunId: campaignRun.id,
       leadId: lead.id,
       status: 'PENDING' as const,

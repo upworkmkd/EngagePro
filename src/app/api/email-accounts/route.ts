@@ -16,8 +16,10 @@ export async function GET(request: NextRequest) {
         id: true,
         provider: true,
         email: true,
+        name: true,
         connectedAt: true,
         isActive: true,
+        dailyLimit: true,
         // Don't return sensitive tokens
       },
     })

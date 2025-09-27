@@ -6,12 +6,18 @@ import { toast } from 'react-hot-toast'
 interface EmailAccount {
   id: string
   email: string
+  name: string | null
   provider: string
   isActive: boolean
-  createdAt: string
+  dailyLimit: number
+  connectedAt: string
 }
 
-export default function GoogleAccountConnection() {
+interface GoogleAccountConnectionProps {
+  onEditSettings?: (account: EmailAccount) => void
+}
+
+export default function GoogleAccountConnection({ onEditSettings }: GoogleAccountConnectionProps = {}) {
   const [emailAccounts, setEmailAccounts] = useState<EmailAccount[]>([])
   const [loading, setLoading] = useState(false)
   const [connecting, setConnecting] = useState(false)
@@ -131,19 +137,36 @@ export default function GoogleAccountConnection() {
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900">{account.email}</p>
-                  <p className="text-sm text-gray-500">
-                    {account.provider} • {account.isActive ? 'Active' : 'Inactive'}
+                  <p className="text-sm font-medium text-gray-900">
+                    {account.name || account.email}
+                  </p>
+                  <p className="text-sm text-gray-500">{account.email}</p>
+                  <p className="text-xs text-gray-400">
+                    Daily limit: {account.dailyLimit} • {account.isActive ? 'Active' : 'Inactive'}
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => disconnectAccount(account.id)}
-                disabled={loading}
-                className="text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50"
-              >
-                Disconnect
-              </button>
+              <div className="flex items-center space-x-2">
+                {onEditSettings && (
+                  <button
+                    onClick={() => onEditSettings(account)}
+                    className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+                    title="Edit settings"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </button>
+                )}
+                <button
+                  onClick={() => disconnectAccount(account.id)}
+                  disabled={loading}
+                  className="text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50"
+                >
+                  Disconnect
+                </button>
+              </div>
             </div>
           ))}
         </div>
