@@ -65,5 +65,8 @@
     "jest-environment-jsdom": "^29.7.0",
     "ts-jest": "^29.1.1",
     "tsx": "^4.6.2"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }

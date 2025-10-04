@@ -40,8 +40,8 @@ export default function RichTextEditor({ value, onChange, placeholder, height = 
       {/* Toolbar */}
       <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-300">
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-gray-700">Email Template</span>
-          <span className="text-xs text-gray-500">Use {'{{name}}'}, {'{{company}}'}, {'{{industry}}'} for personalization</span>
+          <span className="text-sm font-medium text-gray-700">Rich Text Editor</span>
+          <span className="text-xs text-gray-500">Tip: Use {'{{name}}'}, {'{{company}}'}, {'{{industry}}'} for personalization</span>
         </div>
         <div className="flex items-center space-x-2">
           <button

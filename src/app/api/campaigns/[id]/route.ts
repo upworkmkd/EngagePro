@@ -62,15 +62,59 @@ export async function PUT(
     }
 
     const body = await request.json()
+    const { steps, ...campaignData } = body
 
+    // Convert email account IDs to email addresses if needed
+    let senderEmails = campaignData.senderEmails
+    if (senderEmails && senderEmails.length > 0) {
+      // Check if senderEmails contains IDs (they look like CUIDs) or email addresses
+      const hasIds = senderEmails.some((email: string) => email.includes('cm'))
+      
+      if (hasIds) {
+        // Convert IDs to email addresses
+        const emailAccounts = await prisma.emailAccount.findMany({
+          where: {
+            id: { in: senderEmails },
+            userId: user.id,
+          },
+          select: { email: true },
+        })
+        
+        senderEmails = emailAccounts.map(acc => acc.email)
+      }
+    }
+
+    // First, delete all existing steps
+    await prisma.campaignStep.deleteMany({
+      where: {
+        campaignId: params.id,
+      },
+    })
+
+    // Then update the campaign and create new steps
     const campaign = await prisma.campaign.update({
       where: {
         id: params.id,
         userId: user.id,
       },
-      data: body,
+      data: {
+        ...campaignData,
+        senderEmails,
+        steps: {
+          create: steps.map((step: any) => ({
+            stepOrder: step.stepOrder,
+            subjectTemplate: step.subjectTemplate,
+            bodyTemplate: step.bodyTemplate,
+            waitType: step.waitType,
+            waitValue: step.waitValue,
+            condition: step.condition,
+          })),
+        },
+      },
       include: {
-        steps: true,
+        steps: {
+          orderBy: { stepOrder: 'asc' },
+        },
       },
     })
 

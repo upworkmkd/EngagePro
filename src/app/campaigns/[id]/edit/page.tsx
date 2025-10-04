@@ -332,7 +332,7 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Campaign Information</h2>
             <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-8">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                   Campaign Name *
                 </label>
                 <input
@@ -342,7 +342,7 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
                   required
                   value={campaignData.name}
                   onChange={handleCampaignDataChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 />
               </div>
             </div>
@@ -384,7 +384,7 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
 
               {campaignData.leadSelectionType === 'leadpack' && (
                 <div>
-                  <label htmlFor="selectedLeadPack" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="selectedLeadPack" className="block text-sm font-medium text-gray-700 mb-2">
                     Select Lead Pack *
                   </label>
                   <select
@@ -393,7 +393,7 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
                     required
                     value={campaignData.selectedLeadPack}
                     onChange={handleCampaignDataChange}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                    className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                   >
                     <option value="">-- Select a Lead Pack --</option>
                     {leadPacks.map(pack => (
@@ -411,7 +411,7 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
               {campaignData.leadSelectionType === 'filters' && (
                 <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-8">
                   <div>
-                    <label htmlFor="industry" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-2">
                       Industry
                     </label>
                     <input
@@ -420,11 +420,11 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
                       id="industry"
                       value={campaignData.filters.industry}
                       onChange={handleFilterChange}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                     />
                   </div>
                   <div>
-                    <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
                       Location
                     </label>
                     <input
@@ -433,11 +433,11 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
                       id="location"
                       value={campaignData.filters.location}
                       onChange={handleFilterChange}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                     />
                   </div>
                   <div>
-                    <label htmlFor="companySize" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="companySize" className="block text-sm font-medium text-gray-700 mb-2">
                       Company Size
                     </label>
                     <input
@@ -446,11 +446,11 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
                       id="companySize"
                       value={campaignData.filters.companySize}
                       onChange={handleFilterChange}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                     />
                   </div>
                   <div>
-                    <label htmlFor="ratingMin" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="ratingMin" className="block text-sm font-medium text-gray-700 mb-2">
                       Minimum Rating
                     </label>
                     <input
@@ -462,7 +462,7 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
                       step="0.1"
                       value={campaignData.filters.ratingMin}
                       onChange={handleFilterChange}
-                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                     />
                   </div>
                 </div>
@@ -535,7 +535,7 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="sm:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Subject Template *
                       </label>
                       <input
@@ -543,12 +543,12 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
                         required
                         value={step.subjectTemplate}
                         onChange={(e) => updateStep(step.id, 'subjectTemplate', e.target.value)}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                         placeholder="Enter email subject template. Use {{name}}, {{company}} for personalization."
                       />
                     </div>
                     <div>
-                      <label htmlFor={`waitType-${step.id}`} className="block text-sm font-medium text-gray-700">
+                      <label htmlFor={`waitType-${step.id}`} className="block text-sm font-medium text-gray-700 mb-2">
                         Wait For
                       </label>
                       <select
@@ -556,7 +556,7 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
                         name="waitType"
                         value={step.waitType}
                         onChange={(e) => updateStep(step.id, 'waitType', e.target.value as 'minutes' | 'hours' | 'days')}
-                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                        className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                       >
                         <option value="minutes">Minutes</option>
                         <option value="hours">Hours</option>
@@ -564,7 +564,7 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
                       </select>
                     </div>
                     <div>
-                      <label htmlFor={`waitValue-${step.id}`} className="block text-sm font-medium text-gray-700">
+                      <label htmlFor={`waitValue-${step.id}`} className="block text-sm font-medium text-gray-700 mb-2">
                         Wait Value
                       </label>
                       <input
@@ -575,7 +575,7 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
                         required
                         value={step.waitValue}
                         onChange={(e) => updateStep(step.id, 'waitValue', parseInt(e.target.value) || 1)}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                       />
                     </div>
                   </div>

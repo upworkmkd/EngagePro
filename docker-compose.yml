@@ -70,6 +70,7 @@ services:
       - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY}
       - SMTP_HOST=maildev
       - SMTP_PORT=1025
+      - PRISMA_QUERY_LOG=false
     depends_on:
       postgres:
         condition: service_healthy
@@ -93,6 +94,7 @@ services:
       - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY}
       - SMTP_HOST=maildev
       - SMTP_PORT=1025
+      - PRISMA_QUERY_LOG=false
     depends_on:
       postgres:
         condition: service_healthy

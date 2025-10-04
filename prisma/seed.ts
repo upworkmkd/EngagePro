@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -6,12 +7,14 @@ async function main() {
   console.log('🌱 Seeding database...')
 
   // Create demo user
+  const hashedPassword = await bcrypt.hash('demo@123*', 12)
   const demoUser = await prisma.user.upsert({
     where: { email: 'demo@engagepro.com' },
     update: {},
     create: {
       email: 'demo@engagepro.com',
       name: 'Demo User',
+      password: hashedPassword,
       emailVerified: new Date(),
     },
   })
@@ -327,7 +330,8 @@ async function main() {
 
   console.log('🎉 Database seeded successfully!')
   console.log('📧 Demo user email: demo@engagepro.com')
-  console.log('🔑 You can sign in with Google OAuth to access the demo data')
+  console.log('🔑 Demo user password: demo@123*')
+  console.log('🔐 You can sign in with email/password or Google OAuth to access the demo data')
 }
 
 main()

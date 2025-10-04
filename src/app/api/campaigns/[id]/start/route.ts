@@ -126,17 +126,18 @@ export async function POST(
       data: campaignRunLeads,
     })
 
-    // Get user's email account
-    const emailAccount = await prisma.emailAccount.findFirst({
+    // Get user's email accounts that are specified in the campaign
+    const emailAccounts = await prisma.emailAccount.findMany({
       where: {
         userId: user.id,
+        email: { in: campaign.senderEmails },
         isActive: true,
       },
     })
 
-    if (!emailAccount) {
+    if (!emailAccounts.length) {
       return NextResponse.json(
-        { error: 'No active email account found. Please connect Gmail first.' },
+        { error: 'No active email accounts found for the selected sender emails. Please connect Gmail accounts first.' },
         { status: 400 }
       )
     }
@@ -145,8 +146,12 @@ export async function POST(
     const firstStep = campaign.steps[0]
     const emailJobs = []
 
-    for (const lead of leads.slice(0, 50)) { // Limit initial batch
+    for (let i = 0; i < leads.slice(0, 50).length; i++) { // Limit initial batch
+      const lead = leads[i]
       if (!lead.email) continue
+
+      // Rotate through available email accounts
+      const emailAccount = emailAccounts[i % emailAccounts.length]
 
       emailJobs.push({
         leadId: lead.id,
